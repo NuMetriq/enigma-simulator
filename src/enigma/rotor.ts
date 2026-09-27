@@ -2,8 +2,9 @@ import { ALPHABET, letterToIndex, wrapIndex } from './alphabet'
 
 export class Rotor {
   private readonly wiring: number[]
+  private readonly turnoverPosition: number
 
-  constructor(wiring: string) {
+  constructor(wiring: string, turnoverLetter: string) {
     if (
       wiring.length !== ALPHABET.length ||
       new Set(wiring).size !== ALPHABET.length
@@ -12,6 +13,7 @@ export class Rotor {
     }
 
     this.wiring = [...wiring].map(letterToIndex)
+    this.turnoverPosition = letterToIndex(turnoverLetter)
   }
 
   forward(input: number): number {
@@ -19,10 +21,11 @@ export class Rotor {
       throw new Error('Expected an integer from 0 to 25')
     }
 
-    const shiftedInput = wrapIndex(input + this.position)
+    const offset = this.position - this.ringSetting
+    const shiftedInput = wrapIndex(input + offset)
     const wiredOutput = this.wiring[shiftedInput]!
 
-    return wrapIndex(wiredOutput - this.position)
+    return wrapIndex(wiredOutput - offset)
   }
 
   backward(input: number): number {
@@ -30,13 +33,15 @@ export class Rotor {
       throw new Error('Expected an integer from 0 to 25')
     }
 
-    const shiftedInput = wrapIndex(input + this.position)
+    const offset = this.position - this.ringSetting
+    const shiftedInput = wrapIndex(input + offset)
     const wiredOutput = this.wiring.indexOf(shiftedInput)
 
-    return wrapIndex(wiredOutput - this.position)
+    return wrapIndex(wiredOutput - offset)
   }
 
   private position = 0
+  private ringSetting = 0
 
   step(): void {
     this.position = wrapIndex(this.position + 1)
@@ -56,5 +61,21 @@ export class Rotor {
 
   getPosition(): number {
     return this.position
+  }
+
+  setRingSetting(ringSetting: number): void {
+    if (
+      !Number.isInteger(ringSetting) ||
+      ringSetting < 0 ||
+      ringSetting >= ALPHABET.length
+    ) {
+      throw new Error('Expected an integer from 0 to 25')
+    }
+
+    this.ringSetting = ringSetting
+  }
+
+  isAtTurnover(): boolean {
+    return this.position === this.turnoverPosition
   }
 }

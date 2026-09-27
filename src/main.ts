@@ -1,6 +1,9 @@
 import './style.css'
 import { Rotor } from './enigma/rotor'
-import { indexToLetter, letterToIndex } from './enigma/alphabet'
+import { Reflector } from './enigma/reflector'
+import { Plugboard } from './enigma/plugboard'
+import { EnigmaMachine } from './enigma/machine'
+import { ROTOR_WIRINGS, ROTOR_TURNOVERS } from './enigma/rotorData'
 
 const app = document.querySelector<HTMLDivElement>('#app')
 
@@ -26,31 +29,49 @@ app.innerHTML = `
     readonly
   ></textarea>
 
-  <p>Encryption is not connected yet.</p>
+  <p>
+    Settings: I–II–III · Positions: AAA · Rings: AAA · Reflector B · No plugs.
+    Input is converted to uppercase; only A–Z letters are processed.
+  </p>
 `
 
-// Practice wiring: swap A and B, leaving other letters unchanged.
-const rotor = new Rotor('BACDEFGHIJKLMNOPQRSTUVWXYZ')
+const left = new Rotor(ROTOR_WIRINGS.I, ROTOR_TURNOVERS.I)
+const middle = new Rotor(ROTOR_WIRINGS.II, ROTOR_TURNOVERS.II)
+const right = new Rotor(ROTOR_WIRINGS.III, ROTOR_TURNOVERS.III)
 
-rotor.setPosition(letterToIndex('Z'))
+const reflector = new Reflector('YRUHQSLDPXNGOKMIEBFZCWVJAT')
+const plugboard = new Plugboard()
 
-console.log(
-  'Starting position:',
-  indexToLetter(rotor.getPosition())
+const machine = new EnigmaMachine(
+  left,
+  middle,
+  right,
+  reflector,
+  plugboard
 )
 
-rotor.step()
+const plaintext = document.querySelector<HTMLTextAreaElement>('#plaintext')
+const ciphertext = document.querySelector<HTMLTextAreaElement>('#ciphertext')
 
-console.log(
-  'After one step:',
-  indexToLetter(rotor.getPosition())
-)
-
-for (let i = 0; i < 26; i++) {
-  rotor.step()
+if (plaintext === null || ciphertext === null) {
+  throw new Error('Could not find the message text boxes')
 }
 
-console.log(
-  'After 26 more steps:',
-  indexToLetter(rotor.getPosition())
-)
+function encryptMessage(message: string): string {
+  left.setPosition(0)
+  middle.setPosition(0)
+  right.setPosition(0)
+
+  const normalized = message.toUpperCase().replace(/[^A-Z]/g, '')
+  let output = ''
+
+  for (const letter of normalized) {
+    output += machine.pressKey(letter)
+  }
+
+  return output
+}
+
+plaintext.addEventListener('input', () => {
+  ciphertext.value = encryptMessage(plaintext.value)
+})
