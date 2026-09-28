@@ -16,9 +16,49 @@ const letterOptions = [...ALPHABET]
   .map((letter) => `<option value="${letter}">${letter}</option>`)
   .join('')
 
+function rotorOptions(selectedRotor: string): string {
+  return Object.keys(ROTOR_WIRINGS)
+    .map((name) => {
+      const selected = name === selectedRotor ? 'selected' : ''
+
+      return `<option value="${name}" ${selected}>${name}</option>`
+    })
+    .join('')
+}
+
 app.innerHTML = `
   <h1>Enigma Simulator</h1>
   <p>A three-rotor Enigma machine, built step by step.</p>
+
+   <fieldset class="position-settings">
+    <legend>Rotor selection — left to right</legend>
+
+    <div class="position-grid">
+      <div>
+        <label for="left-rotor">Left rotor</label>
+        <select id="left-rotor">
+          ${rotorOptions('I')}
+        </select>
+      </div>
+
+      <div>
+        <label for="middle-rotor">Middle rotor</label>
+        <select id="middle-rotor">
+          ${rotorOptions('II')}
+        </select>
+      </div>
+
+      <div>
+        <label for="right-rotor">Right rotor</label>
+        <select id="right-rotor">
+          ${rotorOptions('III')}
+        </select>
+      </div>
+    </div>
+
+    <p>Choose three different rotors.</p>
+    <p id="settings-error" role="alert"></p>
+  </fieldset>
 
   <fieldset class="position-settings">
     <legend>Starting positions</legend>
@@ -66,6 +106,20 @@ app.innerHTML = `
     <p>Each message begins at these positions. Use the same settings to decrypt.</p>
   </fieldset>
 
+  <label for="plugboard-pairs">Plugboard pairs</label>
+  <input
+    id="plugboard-pairs"
+    type="text"
+    placeholder="AB CD EF"
+    aria-describedby="plugboard-help"
+  />
+  <p id="plugboard-help">
+    Enter pairs separated by spaces, such as AB CD EF.
+    Each letter can appear only once. Leave blank for no plugs.
+  </p>
+
+  <button id="reset-settings" type="button">Reset settings</button>
+
   <label for="plaintext">Message</label>
   <textarea
     id="plaintext"
@@ -81,25 +135,10 @@ app.innerHTML = `
   ></textarea>
 
   <p>
-    Rotors: I–II–III ·  Reflector B · No plugs.
+    Reflector B 
     Input is converted to uppercase; only A–Z letters are processed.
   </p>
 `
-
-const left = new Rotor(ROTOR_WIRINGS.I, ROTOR_TURNOVERS.I)
-const middle = new Rotor(ROTOR_WIRINGS.II, ROTOR_TURNOVERS.II)
-const right = new Rotor(ROTOR_WIRINGS.III, ROTOR_TURNOVERS.III)
-
-const reflector = new Reflector('YRUHQSLDPXNGOKMIEBFZCWVJAT')
-const plugboard = new Plugboard()
-
-const machine = new EnigmaMachine(
-  left,
-  middle,
-  right,
-  reflector,
-  plugboard
-)
 
 const plaintext = document.querySelector<HTMLTextAreaElement>('#plaintext')
 const ciphertext = document.querySelector<HTMLTextAreaElement>('#ciphertext')
@@ -128,13 +167,104 @@ if (
   throw new Error('Could not find the message or settings controls')
 }
 
+const leftRotor = document.querySelector<HTMLSelectElement>('#left-rotor')
+const middleRotor = document.querySelector<HTMLSelectElement>('#middle-rotor')
+const rightRotor = document.querySelector<HTMLSelectElement>('#right-rotor')
+const settingsError = document.querySelector<HTMLParagraphElement>('#settings-error')
+
+if (
+  leftRotor === null ||
+  middleRotor === null ||
+  rightRotor === null ||
+  settingsError === null
+) {
+  throw new Error('Could not find the rotor selection controls')
+}
+
+function isRotorName(name: string): name is keyof typeof ROTOR_WIRINGS {
+  return Object.hasOwn(ROTOR_WIRINGS, name)
+}
+
+const plugboardPairs =
+  document.querySelector<HTMLInputElement>('#plugboard-pairs')
+
+if (plugboardPairs === null) {
+  throw new Error('Could not find the plugboard input')
+}
+
+const resetSettings =
+  document.querySelector<HTMLButtonElement>('#reset-settings')
+
+if (resetSettings === null) {
+  throw new Error('Could not find the reset button')
+}
+
 const updateOutput = (): void => {
+  settingsError.textContent = ''
+  ciphertext.value = ''
+
+  const leftName = leftRotor.value
+  const middleName = middleRotor.value
+  const rightName = rightRotor.value
+
+  if (
+    !isRotorName(leftName) ||
+    !isRotorName(middleName) ||
+    !isRotorName(rightName)
+  ) {
+    settingsError.textContent = 'Choose a valid rotor for each position.'
+    return
+  }
+
+  if (new Set([leftName, middleName, rightName]).size !== 3) {
+    settingsError.textContent = 'Choose three different rotors.'
+    return
+  }
+
+  const pairsText = plugboardPairs.value.trim().toUpperCase()
+  const pairs = pairsText === '' ? [] : pairsText.split(/\s+/)
+
+  let plugboard: Plugboard
+
+  try {
+    plugboard = new Plugboard(pairs)
+  } catch (error) {
+    settingsError.textContent =
+      error instanceof Error
+        ? error.message
+        : 'Invalid plugboard settings.'
+
+    return
+  }
+
+  const left = new Rotor(
+    ROTOR_WIRINGS[leftName],
+    ROTOR_TURNOVERS[leftName]
+  )
+  const middle = new Rotor(
+    ROTOR_WIRINGS[middleName],
+    ROTOR_TURNOVERS[middleName]
+  )
+  const right = new Rotor(
+    ROTOR_WIRINGS[rightName],
+    ROTOR_TURNOVERS[rightName]
+  )
+
   left.setRingSetting(letterToIndex(leftRing.value))
   middle.setRingSetting(letterToIndex(middleRing.value))
   right.setRingSetting(letterToIndex(rightRing.value))
+
   left.setPosition(letterToIndex(leftPosition.value))
   middle.setPosition(letterToIndex(middlePosition.value))
   right.setPosition(letterToIndex(rightPosition.value))
+
+  const machine = new EnigmaMachine(
+    left,
+    middle,
+    right,
+    new Reflector('YRUHQSLDPXNGOKMIEBFZCWVJAT'),
+    plugboard
+  )
 
   const normalized = plaintext.value.toUpperCase().replace(/[^A-Z]/g, '')
   let output = ''
@@ -154,5 +284,27 @@ rightPosition.addEventListener('change', updateOutput)
 leftRing.addEventListener('change', updateOutput)
 middleRing.addEventListener('change', updateOutput)
 rightRing.addEventListener('change', updateOutput)
+leftRotor.addEventListener('change', updateOutput)
+middleRotor.addEventListener('change', updateOutput)
+rightRotor.addEventListener('change', updateOutput)
+plugboardPairs.addEventListener('input', updateOutput)
+
+resetSettings.addEventListener('click', () => {
+  leftRotor.value = 'I'
+  middleRotor.value = 'II'
+  rightRotor.value = 'III'
+
+  leftPosition.value = 'A'
+  middlePosition.value = 'A'
+  rightPosition.value = 'A'
+
+  leftRing.value = 'A'
+  middleRing.value = 'A'
+  rightRing.value = 'A'
+
+  plugboardPairs.value = ''
+
+  updateOutput()
+})
 
 updateOutput()

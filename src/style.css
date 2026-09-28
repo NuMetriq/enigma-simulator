@@ -70,3 +70,41 @@ textarea:focus {
 .position-grid label {
   margin-top: 0;
 }
+
+#settings-error {
+  color: #fca5a5;
+}
+
+#plugboard-pairs {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  background-color: #1e293b;
+  color: #e2e8f0;
+  font: inherit;
+}
+
+#plugboard-pairs:focus {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+#reset-settings {
+  padding: 0.65rem 1rem;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  background-color: #334155;
+  color: #e2e8f0;
+  font: inherit;
+  cursor: pointer;
+}
+
+#reset-settings:hover {
+  background-color: #475569;
+}
+
+#reset-settings:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
