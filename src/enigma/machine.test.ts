@@ -110,3 +110,39 @@ test('recovers a message after restoring non-default starting positions', () => 
   expect(encrypted).not.toBe(original)
   expect(decrypted).toBe(original)
 })
+
+test('matches the published Py-Enigma example with non-default settings', () => {
+  // Source:
+  // https://py-enigma.readthedocs.io/en/latest/guide.html#example-communication-procedure
+
+  const left = new Rotor(ROTOR_WIRINGS.II, ROTOR_TURNOVERS.II)
+  const middle = new Rotor(ROTOR_WIRINGS.IV, ROTOR_TURNOVERS.IV)
+  const right = new Rotor(ROTOR_WIRINGS.V, ROTOR_TURNOVERS.V)
+
+  left.setRingSetting(letterToIndex('B'))
+  middle.setRingSetting(letterToIndex('U'))
+  right.setRingSetting(letterToIndex('L'))
+
+  left.setPosition(letterToIndex('B'))
+  middle.setPosition(letterToIndex('L'))
+  right.setPosition(letterToIndex('A'))
+
+  const machine = new EnigmaMachine(
+    left,
+    middle,
+    right,
+    new Reflector('YRUHQSLDPXNGOKMIEBFZCWVJAT'),
+    new Plugboard([
+      'AV', 'BS', 'CG', 'DL', 'FU',
+      'HZ', 'IN', 'KM', 'OW', 'RX',
+    ])
+  )
+
+  let encrypted = ''
+
+  for (const letter of 'THEXRUSSIANSXAREXCOMINGX') {
+    encrypted += machine.pressKey(letter)
+  }
+
+  expect(encrypted).toBe('NIBLFMYMLLUFWCASCSSNVHAZ')
+})
