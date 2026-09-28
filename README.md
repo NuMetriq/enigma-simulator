@@ -1,10 +1,13 @@
 # Enigma Simulator
+**[Try the live demo](https://numetriq.github.io/enigma-simulator/)**
 
 An interactive, browser-based simulation of a three-rotor Enigma machine,
 built with TypeScript and Vite.
 
 Choose rotor order, starting positions, ring settings, and plugboard
 connections, then encrypt or decrypt a message.
+
+![Enigma Simulator showing rotor settings and message output](docs/screenshot.png)
 
 ## Features
 

@@ -135,8 +135,7 @@ app.innerHTML = `
   ></textarea>
 
   <p>
-    Reflector B 
-    Input is converted to uppercase; only A–Z letters are processed.
+    Reflector B · Input is converted to uppercase; only A–Z letters are processed.
   </p>
 `
 
