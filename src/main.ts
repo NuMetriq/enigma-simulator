@@ -65,45 +65,45 @@ app.innerHTML = `
 
     <div class="position-grid">
       <div>
-        <label for="left-position">Left · Rotor I</label>
+        <label for="left-position">Left</label>
         <select id="left-position">${letterOptions}</select>
       </div>
 
       <div>
-        <label for="middle-position">Middle · Rotor II</label>
+        <label for="middle-position">Middle</label>
         <select id="middle-position">${letterOptions}</select>
       </div>
 
       <div>
-        <label for="right-position">Right · Rotor III</label>
+        <label for="right-position">Right</label>
         <select id="right-position">${letterOptions}</select>
       </div>
     </div>
 
-    <fieldset class="position-settings">
+    <p>Each message begins at these positions. Use the same settings to decrypt.</p>
+  </fieldset>
+
+  <fieldset class="position-settings">
     <legend>Ring settings</legend>
 
     <div class="position-grid">
       <div>
-        <label for="left-ring">Left · Rotor I</label>
+        <label for="left-ring">Left</label>
         <select id="left-ring">${letterOptions}</select>
       </div>
 
       <div>
-        <label for="middle-ring">Middle · Rotor II</label>
+        <label for="middle-ring">Middle</label>
         <select id="middle-ring">${letterOptions}</select>
       </div>
 
       <div>
-        <label for="right-ring">Right · Rotor III</label>
+        <label for="right-ring">Right</label>
         <select id="right-ring">${letterOptions}</select>
       </div>
     </div>
 
     <p>Adjust the wiring offset relative to each rotor's displayed letter.</p>
-  </fieldset>
-
-    <p>Each message begins at these positions. Use the same settings to decrypt.</p>
   </fieldset>
 
   <label for="plugboard-pairs">Plugboard pairs</label>

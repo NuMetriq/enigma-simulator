@@ -108,3 +108,26 @@ textarea:focus {
   outline: 2px solid #38bdf8;
   outline-offset: 2px;
 }
+
+.position-grid select {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  background-color: #1e293b;
+  color: #e2e8f0;
+  font: inherit;
+}
+
+.position-grid select:focus {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+@media (max-width: 380px) {
+  .position-grid {
+    grid-template-columns: 1fr;
+  }
+}
